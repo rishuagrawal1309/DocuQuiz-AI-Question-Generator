@@ -1,33 +1,124 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>DocuQuiz AI</title>
+    <meta charset="UTF-8">	
+    <title>Text2Que Generator</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 80px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        p {
+            color: #777;
+            font-size: 14px;
+        }
+
+        input[type="file"] {
+            margin: 20px 0;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #5a67d8;
+        }
+
+        .loading {
+            margin-top: 15px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        ul {
+            margin-top: 20px;
+            padding: 0;
+            list-style: none;
+            text-align: left;
+        }
+
+        li {
+            background: #f3f4f6;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+
+        li:hover {
+            background: #e5e7eb;
+        }
+
+        .error {
+            color: red;
+        }
+    </style>
 </head>
+
 <body>
 
-<h2>Upload PDF</h2>
+<div class="container">
 
-<input type="file" id="fileInput" />
-<button onclick="uploadFile()">Upload</button>
+    <h1>Text to Questions generator</h1>
+    <p>Upload a PDF and generate intelligent questions instantly</p>
 
-<h3>Questions:</h3>
-<ul id="output"></ul>
+    <input type="file" id="fileInput" />
+    <br>
+    <button onclick="uploadFile()">Generate Questions</button>
+
+    <div class="loading" id="loading"></div>
+
+    <ul id="output"></ul>
+
+</div>
 
 <script>
 async function uploadFile() {
     try {
         const fileInput = document.getElementById("fileInput");
         const file = fileInput.files[0];
+        const output = document.getElementById("output");
+        const loading = document.getElementById("loading");
+
+        output.innerHTML = "";
+        loading.innerText = "";
 
         if (!file) {
             alert("Please select a file first!");
             return;
         }
 
+        loading.innerText = "⏳ Generating questions...";
+
         const formData = new FormData();
         formData.append("file", file);
-
-        console.log("Uploading file...");
 
         const response = await fetch("http://127.0.0.1:8000/upload", {
             method: "POST",
@@ -37,22 +128,23 @@ async function uploadFile() {
         const data = await response.json();
         console.log("API RESPONSE:", data);
 
-        const output = document.getElementById("output");
-        output.innerHTML = "";
+        loading.innerText = "";
 
         if (data.questions && data.questions.length > 0) {
-            data.questions.forEach(q => {
+            data.questions.forEach((q, index) => {
                 const li = document.createElement("li");
-                li.innerText = q;
+                li.innerText = `${index + 1}. ${q}`;
                 output.appendChild(li);
             });
         } else {
-            output.innerHTML = "<li>No questions returned</li>";
+            output.innerHTML = "<li class='error'>No questions generated</li>";
         }
 
     } catch (error) {
         console.error("ERROR:", error);
-        alert("Something went wrong. Check console.");
+        document.getElementById("loading").innerText = "";
+        document.getElementById("output").innerHTML =
+            "<li class='error'>Something went wrong</li>";
     }
 }
 </script>
