@@ -1,28 +1,46 @@
 from fastapi import FastAPI, UploadFile, File
-import shutil
+from backend.question_generator import generate_questions
 from backend.text_extractor import extract_text_from_pdf
+import os
+import shutil
 
 app = FastAPI()
+
 
 @app.get("/")
 def read_root():
     return {"message": "DocuQuiz AI API is running"}
 
+
 @app.get("/health")
 def health_check():
     return {"status": "OK"}
 
+
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
+    try:
+        file_location = f"temp_{file.filename}"
 
-    file_location = f"temp_{file.filename}"
+        # Save uploaded file
+        with open(file_location, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
-    with open(file_location, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+        # Extract text from PDF
+        extracted_text = extract_text_from_pdf(file_location)
 
-    extracted_text = extract_text_from_pdf(file_location)
+        # Generate questions
+        questions = generate_questions(extracted_text)
 
-    return {
-        "filename": file.filename,
-        "extracted_text": extracted_text[:500]  # show first 500 chars
-    }
+        # Delete temp file
+        os.remove(file_location)
+
+        return {
+            "filename": file.filename,
+            "questions": questions
+        }
+
+    except Exception as e:
+        return {
+            "error": str(e)
+        }

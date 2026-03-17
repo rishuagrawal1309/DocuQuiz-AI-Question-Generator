@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DocuQuiz AI</title>
+</head>
+<body>
+
+<h2>Upload PDF</h2>
+
+<input type="file" id="fileInput" />
+<button onclick="uploadFile()">Upload</button>
+
+<h3>Questions:</h3>
+<ul id="output"></ul>
+
+<script>
+async function uploadFile() {
+    try {
+        const fileInput = document.getElementById("fileInput");
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert("Please select a file first!");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        console.log("Uploading file...");
+
+        const response = await fetch("http://127.0.0.1:8000/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+        console.log("API RESPONSE:", data);
+
+        const output = document.getElementById("output");
+        output.innerHTML = "";
+
+        if (data.questions && data.questions.length > 0) {
+            data.questions.forEach(q => {
+                const li = document.createElement("li");
+                li.innerText = q;
+                output.appendChild(li);
+            });
+        } else {
+            output.innerHTML = "<li>No questions returned</li>";
+        }
+
+    } catch (error) {
+        console.error("ERROR:", error);
+        alert("Something went wrong. Check console.");
+    }
+}
+</script>
+
+</body>
+</html>
