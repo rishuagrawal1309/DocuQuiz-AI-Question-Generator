@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
 from backend.question_generator import generate_questions
-from backend.text_extractor import extract_text_from_pdf
+from backend.text_extractor import extract_text
 import os
 import shutil
 
@@ -35,9 +35,9 @@ async def upload_file(file: UploadFile = File(...)):
         with open(file_location, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        # Extract text from PDF
-        extracted_text = extract_text_from_pdf(file_location)
-
+        # Extract text 
+        extracted_text = extract_text(file_location, file.filename)
+	
         # Generate questions
         questions = generate_questions(extracted_text)
 
