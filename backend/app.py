@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File
-from backend.question_generator import generate_questions
+from backend.question_generator import generate_questions, generate_mcqs
 from backend.text_extractor import extract_text
 import os
 import shutil
@@ -37,16 +37,23 @@ async def upload_file(file: UploadFile = File(...)):
 
         # Extract text 
         extracted_text = extract_text(file_location, file.filename)
+
+        if not extracted_text:
+             os.remove(file_location)  # cleanup
+             return {"error": "Could not extract text from file"}
+
 	
         # Generate questions
         questions = generate_questions(extracted_text)
+        mcqs = generate_mcqs(extracted_text)
 
         # Delete temp file
         os.remove(file_location)
 
         return {
             "filename": file.filename,
-            "questions": questions
+            "questions": questions,
+            "mcqs": mcqs
         }
 
     except Exception as e:

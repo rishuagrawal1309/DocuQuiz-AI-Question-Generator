@@ -126,19 +126,60 @@ async function uploadFile() {
         });
 
         const data = await response.json();
+        if (data.error) {
+    output.innerHTML = `<li class="error">${data.error}</li>`;
+    loading.innerText = "";
+    return;
+}
         console.log("API RESPONSE:", data);
 
         loading.innerText = "";
+        // output.innerHTML = "";
 
-        if (data.questions && data.questions.length > 0) {
-            data.questions.forEach((q, index) => {
-                const li = document.createElement("li");
-                li.innerText = `${index + 1}. ${q}`;
-                output.appendChild(li);
-            });
-        } else {
-            output.innerHTML = "<li class='error'>No questions generated</li>";
-        }
+// ✅ Questions Section
+if (data.questions && data.questions.length > 0) {
+
+    const qHeader = document.createElement("h3");
+    qHeader.innerText = "Questions";
+    output.appendChild(qHeader);
+
+    data.questions.forEach((q, index) => {
+        const li = document.createElement("li");
+        li.innerText = `${index + 1}. ${q}`;
+        output.appendChild(li);
+    });
+
+} else {
+    const li = document.createElement("li");
+    li.className = "error";
+    li.innerText = "No questions generated";
+    output.appendChild(li);
+}
+
+
+// ✅ MCQ Section
+if (data.mcqs && data.mcqs.length > 0) {
+
+    const mcqHeader = document.createElement("h3");
+    mcqHeader.innerText = "MCQs";
+    output.appendChild(mcqHeader);
+
+    data.mcqs.forEach((q, index) => {
+        const li = document.createElement("li");
+
+        let html = `<strong>${index + 1}. ${q.question}</strong><br>`;
+
+        q.options.forEach((opt, i) => {
+            html += `${String.fromCharCode(65 + i)}. ${opt}<br>`;
+        });
+
+        html += `<em>Answer: ${q.answer}</em>`;
+
+        li.innerHTML = html;
+        output.appendChild(li);
+    });
+
+}
 
     } catch (error) {
         console.error("ERROR:", error);
